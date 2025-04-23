@@ -37,7 +37,9 @@ jobs:
           chmod 777 MyKeyPair.pem
           PUBLIC_IP=$(terraform output -raw public_ip)
 
-          ssh -o StrictHostKeyChecking=no -i MyKeyPair.pem ec2-user@$PUBLIC_IP << 'EOF'
+          echo "Connecting to EC2 instance at $PUBLIC_IP"
+
+          ssh -o StrictHostKeyChecking=no -i MyKeyPair.pem ec2-user@$PUBLIC_IP <<EOF
             sudo yum update -y
             sudo yum install docker -y
             sudo service docker start
