@@ -25,11 +25,11 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+      - name: Terraform Steps
+        run: |
+              terraform init
+              terraform plan
+              terraform apply -auto-approve
 
       # Docker Step
       - name: Docker Login
