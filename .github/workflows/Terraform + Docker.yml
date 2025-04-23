@@ -1,11 +1,11 @@
-name: Terraform + Docker Workflow
+# name: Terraform + Docker Workflow
 
-on:
+#on:
   push:
-    branches: [ "main" ]
+    branches: [ "test" ]
   workflow_dispatch:
 
-jobs:
+#jobs:
   deploy:
     runs-on: ubuntu-latest
 
