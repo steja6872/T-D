@@ -1,0 +1,45 @@
+name: Terraform EC2 with Docker Setup
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: |
+              terraform init
+              terraform plan
+              terraform apply -auto-approve
+
+      # Optional: SSH into EC2 and run Docker commands if needed
+      # Make sure you add private key to GitHub secrets as EC2_KEY
+      - name: Install Docker and Run Image
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > MyKeyPair.pem
+          chmod 777 MyKeyPair.pem
+          PUBLIC_IP=$(terraform output -raw public_ip)
+
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@$PUBLIC_IP << 'EOF'
+            sudo yum update -y
+            sudo yum install docker -y
+            sudo service docker start
+            sudo usermod -aG docker ec2-user
+            docker run hello-world
