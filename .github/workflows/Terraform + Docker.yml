@@ -1,11 +1,11 @@
-# name: Terraform + Docker Workflow
+name: Terraform + Docker Workflow
 
-#on:
+on:
   push:
-    branches: [ "test" ]
+    branches: [ "main2" ]
   workflow_dispatch:
 
-#jobs:
+jobs:
   deploy:
     runs-on: ubuntu-latest
 
@@ -13,33 +13,40 @@
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # AWS Step
+      # AWS Steps
       - name: AWS Login
         uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
-             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
-             aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-      # Terraform Step
+      # Terraform Steps
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Steps
         run: |
-              terraform init
-              terraform plan
-              terraform apply -auto-approve
+          terraform init
+          terraform plan
+          terraform apply -auto-approve
 
-      # Docker Step
+      # Docker Build + Push to Docker Hub
       - name: Docker Login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t my-combined-image:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-combined-image:latest .
+
+      - name: Push Docker Image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-combined-image:latest
+
+      # Pull from Docker Hub & Upload as Artifact
+      - name: Pull Image from Docker Hub
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/my-combined-image:latest
 
       - name: Save Docker Image
-        run: docker save my-combined-image:latest -o my-combined-image.tar
+        run: docker save ${{ secrets.DOCKER_USERNAME }}/my-combined-image:latest -o my-combined-image.tar
 
       - name: Upload as Artifact
         uses: actions/upload-artifact@v4
